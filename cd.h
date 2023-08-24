@@ -31,9 +31,18 @@ void cd(int client_socket, char** current_directory, char* new_directory, char* 
     if (new_directory[0] == '/') {
         snprintf(target_directory, 1024, "%s", new_directory);
     }
-    // handle home directory
-    else if (strcmp(new_directory, "~") == 0) {
+    else if (sizeof(new_directory) == 0) {
         snprintf(target_directory, 1024, "%s", root_directory);
+    }
+    // handle home directory
+    else if (new_directory[0] == '~') {
+        if (sizeof(new_directory) == 1) {snprintf(target_directory, 1024, "%s", root_directory);}    
+        if (sizeof(new_directory) > 1) {
+            memmove(new_directory, new_directory+1, strlen(new_directory));
+            char* result_directory = (char*)malloc(1024);
+            snprintf(result_directory, 1024, "%s%s", root_directory, new_directory);
+            snprintf(target_directory, 1024, "%s", result_directory);
+        }
     }
     // handle previous directory
     else if (strcmp(new_directory, "-") == 0) {
@@ -51,7 +60,7 @@ void cd(int client_socket, char** current_directory, char* new_directory, char* 
             (*current_directory)[last_slash] = '\0';
             snprintf(target_directory, 1024, "%s", *current_directory);
         } else {
-            send_message(client_socket, "Cannot move up from root directory.");
+            send_message(client_socket, "Cannot move up from root directory");
             free(target_directory);
             return;
         }
@@ -67,7 +76,7 @@ void cd(int client_socket, char** current_directory, char* new_directory, char* 
 
     // check if target directory is outside root directory
     if (strncmp(target_directory, root_directory, strlen(root_directory)) != 0) {
-        send_message(client_socket, "Cannot access directory outside root directory.");
+        send_message(client_socket, "Cannot access directory outside root directory");
         free(target_directory);
         return;
     }
@@ -76,9 +85,9 @@ void cd(int client_socket, char** current_directory, char* new_directory, char* 
     if (chdir(target_directory) == 0) {
         getcwd(*current_directory, 1024);
         setenv("OLDPWD", *current_directory, 1);
-        send_message(client_socket, "Directory changed.");
+        send_message(client_socket, "Directory changed");
     } else {
-        send_message(client_socket, "Cannot change directory.");
+        send_message(client_socket, "No such file or directory");
     }
 
     free(target_directory);
