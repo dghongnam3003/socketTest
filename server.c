@@ -89,6 +89,9 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);  
         }
 
+    //to check if 'cd' was executed before 'ls'
+    int cd_executed = 0;
+
     while(TRUE){
         
 
@@ -98,6 +101,7 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
         }
 
+        //create buffer array to input command
         char *buffer_array[1000];
         int token = 0;
         buffer_array[token] = strtok(buffer, "\t\n ");
@@ -106,13 +110,12 @@ int main(int argc, char *argv[]) {
                 buffer_array[token] = strtok(NULL, "\t\n ");
         }
 
-
+        //set root to absolutely root of the machine
         char *abs_root;
         realpath(root, abs_root);
         chdir(abs_root);
-        char directory[1024];
-        getcwd(directory, sizeof(directory));
 
+        //handle commands
         if (strcmp(buffer_array[0], "cd") == 0) {
             char* current_directory = (char*)malloc(1024);
             getcwd(current_directory, sizeof(current_directory));
@@ -120,13 +123,19 @@ int main(int argc, char *argv[]) {
             strcpy(new_directory, buffer_array[1]);
 
             cd(new_socket, &current_directory, new_directory, root);
+            cd_executed = 1;
         }
         else if (strcmp(buffer_array[0],"ls") == 0) {
             
-            // strcpy(directory, root);
-            // getcwd(directory, sizeof(directory));
+            char directory[1024];
+            getcwd(directory, sizeof(directory));
 
-            list_files(new_socket, directory);
+            //if 'cd' was executed before, list root, if not, list current directory of the machine.
+            if (cd_executed == 0) {
+                list_files(new_socket, root);
+            } else if (cd_executed == 1) {
+                list_files(new_socket, directory);
+            }
         }
 
         
