@@ -136,6 +136,9 @@ int main(int argc, char *argv[]) {
             } else if (cd_executed == 1) {
                 list_files(new_socket, directory);
             }
+        } else if (strcmp(buffer_array[0], "exit") == 0){
+            close(new_socket);
+            shutdown(server_fd, SHUT_RDWR);
         }
 
         

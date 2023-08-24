@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
         printf("Enter command: ");
         fgets(cmd, sizeof(cmd), stdin);
         cmd[strcspn(cmd, "\n")] = 0;
-
+        if (strcmp(cmd, "exit") == 0) {shutdown(client_fd, SHUT_RDWR);}
+        
         //send command to server
         if (send(client_fd, cmd, strlen(cmd), 0) < 0) {
             printf("send failed");
