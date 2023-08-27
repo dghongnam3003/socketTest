@@ -1,9 +1,11 @@
 #include "cd.h"
 #include "ls.h"
+#include "get.h"
 
-
+typedef int bool;
 #define TRUE 1
 #define FALSE 0
+
 #define INFINITE 100000
 
 int main(int argc, char *argv[]) {
@@ -90,7 +92,7 @@ int main(int argc, char *argv[]) {
         }
 
     //to check if 'cd' was executed before 'ls'
-    int cd_executed = 0;
+    bool cd_executed = FALSE;
 
     while(TRUE){
         
@@ -123,7 +125,7 @@ int main(int argc, char *argv[]) {
             strcpy(new_directory, buffer_array[1]);
 
             cd(new_socket, &current_directory, new_directory, root);
-            cd_executed = 1;
+            cd_executed = TRUE;
         }
         else if (strcmp(buffer_array[0],"ls") == 0) {
             
@@ -131,12 +133,25 @@ int main(int argc, char *argv[]) {
             getcwd(directory, sizeof(directory));
 
             //if 'cd' was executed before, list root, if not, list current directory of the machine.
-            if (cd_executed == 0) {
+            if (!cd_executed) {
                 list_files(new_socket, root);
-            } else if (cd_executed == 1) {
+            } else if (cd_executed) {
                 list_files(new_socket, directory);
             }
-        } else if (strcmp(buffer_array[0], "exit") == 0){
+        }
+        else if (strcmp(buffer_array[0], "get") == 0) {
+            char directory[1024];
+            // if (!cd_executed){
+            //     strcpy(directory, root);
+            // } else if (cd_executed) {
+            //     getcwd(directory, sizeof(directory));
+            // }
+
+            getcwd(directory, sizeof(directory));
+
+            get_file(new_socket, directory, buffer_array[1]);
+        }
+        else if (strcmp(buffer_array[0], "exit") == 0){
             close(new_socket);
             shutdown(server_fd, SHUT_RDWR);
         }

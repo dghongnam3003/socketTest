@@ -26,13 +26,12 @@ void send_message(int client_socket, const char* message) {
 void cd(int client_socket, char** current_directory, char* new_directory, char* root_directory) {
     char* target_directory = (char*)malloc(1024);
 
-
-    // handle absolute path
-    if (new_directory[0] == '/') {
-        snprintf(target_directory, 1024, "%s", new_directory);
-    }
-    else if (sizeof(new_directory) == 0) {
+    if (strcmp(new_directory, "\0") == 0) {
         snprintf(target_directory, 1024, "%s", root_directory);
+    }
+    // handle absolute path
+    else if (new_directory[0] == '/') {
+        snprintf(target_directory, 1024, "%s", new_directory);
     }
     // handle home directory
     else if (new_directory[0] == '~') {
@@ -45,7 +44,7 @@ void cd(int client_socket, char** current_directory, char* new_directory, char* 
         }
     }
     // handle previous directory
-    else if (strcmp(new_directory, "-") == 0) {
+    else if (new_directory[0] == '-') {
         snprintf(target_directory, 1024, "%s", getenv("OLDPWD"));
     }
     // handle parent directory
@@ -75,7 +74,13 @@ void cd(int client_socket, char** current_directory, char* new_directory, char* 
     }
 
     // check if target directory is outside root directory
-    if (strncmp(target_directory, root_directory, strlen(root_directory)) != 0) {
+    // if (strncmp(target_directory, root_directory, strlen(root_directory)) < 0) {
+    //     send_message(client_socket, "Cannot access directory outside root directory");
+    //     free(target_directory);
+    //     return;
+    // }
+
+    if (sizeof(target_directory) < sizeof(root_directory)) {
         send_message(client_socket, "Cannot access directory outside root directory");
         free(target_directory);
         return;
